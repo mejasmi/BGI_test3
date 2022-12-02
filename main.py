@@ -7,49 +7,34 @@ import cell
 def main(filename):
 
     dfile = pd.read_csv(filename, sep='\t')
-    # print(dfile.head(10))
-    # print(dfile.tail(10))
-    # print(dfile.info())
-    # print(dfile.to_string())
 
-    # p = dfile.duplicated()
-    # for value in p:
-    #     if value:
-    #         print("duplicate found")
-    # dfile.plot(kind='scatter', x='x', y='y')
-    # plt.show()
-
-    # dfile.plot(kind='scatter', x='geneID', y='cell')
-    # plt.show()
-
-    geneID = np.array(dfile['geneID'])
-    unique_genes, un_genes_cnt = np.unique(geneID, return_counts=True)
-    # print(unique_genes.size)
-    # print(un_genes_cnt.max())
+    # need the list of all genes to base the feature vector on them
+    # this array of gene names (strings) will be positional reference for creating feature vectors
+    geneID = np.array(dfile["geneID"])
+    unique_genes = np.unique(geneID)
 
     cellID = np.array(dfile['cell'])
-    unique_cells, gene_per_cell_cnt = np.unique(cellID, return_counts=True)
-    print(unique_cells.size)
-    # plt.hist(gene_per_cell_cnt)
-    # plt.show()
+    unique_cells = np.unique(cellID)
+    # print(unique_cells.size)
 
-    # total gene expression per cell
-    # I want to create an array the size of unique cell number
-    # go through database and for each row with this cell ID accumulate MIDCounts
-    # this will provide total gene expression per cell
-    # plot hist of it
-    total_expression_per_cell = np.zeros(shape=(1,unique_cells.size), dtype=np.int64)
     cell_objects = []
     for it, cell_num in zip(range(unique_cells.size), unique_cells):
         # init cell
         new_cell = cell.Cell(cell_num)
         cell_rows = dfile.loc[dfile["cell"] == cell_num]
-        new_cell.read_data(cell_rows)        
-
-        total_expression_per_cell[0,it] = cell_rows["MIDCounts"].sum()
-
-    plt.hist(total_expression_per_cell)
-    plt.show()
+        # read all rows for a signle cell and extract data
+        new_cell.read_data(cell_rows)
+        # create feature vector for cell
+        # each position in feature vector is a number of MIDCounts for all unique genes
+        # NOTE: additianly we can add other attributes, total expression for cell,
+        # maximum expression, number of different genes expressed etc.
+        new_cell.create_feature_vector(gene_names = unique_genes)
+        # calculate center of mass for the cell
+        # some cells have different positions for differenc gene expressions
+        # this offsets are small. There are two ways to calculate center of mass:
+        # taking into account the MIDCount for gene at the position, or just using
+        # each gene expressiong position with same unity weight
+        new_cell.calc_center_of_mass(weighted = True)
 
     # create feature vector the size of all unique genes, and additional value total_gene_expression
     # fill those feature vectors and run PCA
