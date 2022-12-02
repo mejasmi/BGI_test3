@@ -11,6 +11,7 @@ class Cell(object):
         self.gnx = 0
         self.gny = 0
         self.feature_vector = None
+        self.total_expression = 0
     
     def read_data(self, pdata):
         data_rows = pdata.shape[0]
@@ -58,4 +59,10 @@ class Cell(object):
             self.spx = self.positions[:,0].sum() / self.positions.shape[0]
             self.spy = self.positions[:,1].sum() / self.positions.shape[0]
 
+        return
+
+    ## CALC_TOTAL_EXPRESSION
+    # @brief sum of all gene MIDCounts for the cell    
+    def calc_total_expression(self):
+        self.total_expression = self.positions[:,2].sum()
         return
