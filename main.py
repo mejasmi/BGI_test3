@@ -7,6 +7,7 @@ import pickle
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 import random
+import kmeans
 
 
 def load_data(filename):
@@ -189,9 +190,11 @@ def main(filename,
             # extract cells with distance to curr cell smaller than threshold
             close_cells = np.array(range(len(cell_objects)))[distance_matrix[curr_cell, :] < threshold]
             # add only cells that are not yet in a cluster for further processing
-            for cell in close_cells:
-                if (cell not in clusters[curr_cluster]) and (cell not in cells_to_process):
-                    cells_to_process.append(cell)
+            diff_from_processing = list(set(close_cells) - set(clusters[curr_cluster]) - set(cells_to_process))
+            # for cell in close_cells:
+            #     if (cell not in clusters[curr_cluster]) and (cell not in cells_to_process):
+            #         cells_to_process.append(cell)
+            cells_to_process = cells_to_process + diff_from_processing
             # add current cell to current cluster
             clusters[curr_cluster].append(curr_cell)
 
@@ -202,15 +205,18 @@ def main(filename,
 
 
         curr_cluster += 1
+    
+    curr_cluster -= 1
 
     # if we do not have enough clusters label leftover cells as extra class
     if (len(available_cells) > 0):
-        clusters.append([x for x in available_cells]) # probably could have just appended available_cells 
+        clusters.append([x for x in available_cells]) # probably could have just appended available_cells
+        curr_cluster += 1
         # curr_pass += 1
     
     # display
-    colors = ['b', 'g', 'r', 'm', 'c', 'k', 'y', '#884488', '#018888', '#2248FF']
-    cluster_labels = np.array(range(len(clusters)))
+    colors = ['b', 'g', 'r', 'm', 'c', 'k', 'y', '#884488', '#018888', '#2248FF', '#FF3388']
+    cluster_labels = np.array(range(curr_cluster+1))
     for cluster_id in cluster_labels:
         plt.scatter(spatial_plane_coords[clusters[cluster_id], 0], spatial_plane_coords[clusters[cluster_id], 1], marker='o', c=colors[np.where(cluster_labels == cluster_id)[0][0]], label=str(cluster_id))
     plt.legend()
@@ -226,8 +232,8 @@ if __name__ == '__main__':
     # open the input file
     filename = "../input.tsv"
     pd.options.display.max_rows = 9999
-    exp_weight = 0.3
-    percentage_distance_threshold = 0.2
+    exp_weight = 0
+    percentage_distance_threshold = 0.007
     num_of_clusters = 10
     main(filename=filename,
          exp_weight = exp_weight, 
