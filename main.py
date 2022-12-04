@@ -9,6 +9,7 @@ from sklearn.preprocessing import StandardScaler
 import random
 import kmeans
 
+colors = ['b', 'g', 'r', 'm', 'c', 'k', 'y', '#884488', '#018888', '#2248FF', '#FF3388', '#934752', '#E7B300', '#9012FE', '#3322CC']
 
 def load_data(filename):
     try:
@@ -58,12 +59,11 @@ def main(filename,
             # NOTE: additianly we can add other attributes, total expression for cell,
             # maximum expression, number of different genes expressed etc.
             new_cell.create_feature_vector(gene_names = unique_genes)
-            # calculate center of mass for the cell
-            # some cells have different positions for differenc gene expressions
-            # this offsets are small. There are two ways to calculate center of mass:
-            # taking into account the MIDCount for gene at the position, or just using
-            # each gene expressiong position with same unity weight
-            new_cell.calc_center_of_mass(weighted = True)
+
+            # add other features to feature vector
+            # here we are adding total gene expression, maximum gene expression and number of unique genes
+            new_cell.add_features(new_cell.total_gene_expression, new_cell.maximum_gene_expression, len(new_cell.genes))
+            
             # add new_cell to a list of cells
             cell_objects.append(new_cell)
             # if (len(cell_objects) > 49 ):
@@ -166,12 +166,13 @@ def main(filename,
     # exp_clusters = exp_kmeans.fit_predict(exp_plane_coords)
 
     # # display
+
     # cluster_labels = np.unique(exp_clusters)
     # for cluster_id in cluster_labels:
-    #     plt.scatter(exp_plane_coords[exp_clusters == cluster_id, 0], exp_plane_coords[exp_clusters == cluster_id, 1], marker='o', c=colors[np.where(cluster_labels == cluster_id)[0][0]], label=str(cluster_id))
+    #     plt.scatter(spatial_plane_coords[exp_clusters == cluster_id, 0], spatial_plane_coords[exp_clusters == cluster_id, 1], marker='o', c=colors[np.where(cluster_labels == cluster_id)[0][0]], label='feature'+ str(cluster_id))
     # plt.legend()
-    # plt.xlabel('exp_feature_0')
-    # plt.ylabel('exp_feature_1')
+    # plt.xlabel('x')
+    # plt.ylabel('y')
     # plt.show()
 
     # # custom clusterization by the test3 taks
@@ -224,21 +225,21 @@ def main(filename,
     # plt.ylabel('y')
     # plt.show()
 
-    available_cells = [x for x in range(len(cell_objects))]
-    knmeans_obj = kmeans.KMeans(n_clusters=num_of_clusters, max_iter=300)
-    knmeans_obj.fit(available_cells, distance_matrix)
-    _, labels = knmeans_obj.evaluate(available_cells, distance_matrix)
+    # available_cells = [x for x in range(len(cell_objects))]
+    # knmeans_obj = kmeans.KMeans(n_clusters=num_of_clusters, max_iter=300)
+    # knmeans_obj.fit(available_cells, distance_matrix)
+    # _, labels = knmeans_obj.evaluate(available_cells, distance_matrix)
 
-    # display
-    colors = ['b', 'g', 'r', 'm', 'c', 'k', 'y', '#884488', '#018888', '#2248FF', '#FF3388', '#934752', '#E7B300', '#9012FE', '#3322CC']
-    cluster_labels = np.unique(labels)
-    for cluster_id in cluster_labels:
-        plt.scatter(spatial_plane_coords[np.where(labels==cluster_id)[0], 0], spatial_plane_coords[np.where(labels==cluster_id)[0], 1], marker='o', c=colors[np.where(cluster_labels == cluster_id)[0][0]], label=str(cluster_id))
-    plt.legend()
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.savefig("custom_kmeans_exp_weight_%.1f_num_cluster_%d.png" % (exp_weight, num_of_clusters))
-    plt.close()
+    # # display
+    # colors = ['b', 'g', 'r', 'm', 'c', 'k', 'y', '#884488', '#018888', '#2248FF', '#FF3388', '#934752', '#E7B300', '#9012FE', '#3322CC']
+    # cluster_labels = np.unique(labels)
+    # for cluster_id in cluster_labels:
+    #     plt.scatter(spatial_plane_coords[np.where(labels==cluster_id)[0], 0], spatial_plane_coords[np.where(labels==cluster_id)[0], 1], marker='o', c=colors[np.where(cluster_labels == cluster_id)[0][0]], label=str(cluster_id))
+    # plt.legend()
+    # plt.xlabel('x')
+    # plt.ylabel('y')
+    # plt.savefig("custom_kmeans_exp_weight_%.1f_num_cluster_%d.png" % (exp_weight, num_of_clusters))
+    # plt.close()
 
 
 
@@ -250,12 +251,12 @@ if __name__ == '__main__':
     filename = "../input.tsv"
     pd.options.display.max_rows = 9999
     percentage_distance_threshold = 0.007
-    for exp_weight in [x/10 for x in range(0,11)]:
-        for num_of_clusters in range(5,15,1):
-    # exp_weight = 0.3
-    # num_of_clusters = 10
-            main(filename=filename,
-                exp_weight = exp_weight, 
-                percentage_distance_threshold = percentage_distance_threshold,
-                num_of_clusters = num_of_clusters)
+    # for exp_weight in [x/10 for x in range(0,11)]:
+    #     for num_of_clusters in range(5,15,1):
+    exp_weight = 0.3
+    num_of_clusters = 10
+    main(filename=filename,
+        exp_weight = exp_weight, 
+        percentage_distance_threshold = percentage_distance_threshold,
+        num_of_clusters = num_of_clusters)
     # print("Number of increases is %d.\n" % result)
