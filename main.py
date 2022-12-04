@@ -185,74 +185,81 @@ def main(filename,
     # plt.ylabel('y')
     # plt.show()
 
-    # # custom clusterization by the test3 taks
-    # # max_iter = 300
-    # # curr_pass = 0
-    # clusters = [[] for _ in range(num_of_clusters)]
-    # curr_cluster = 0
-    # available_cells = [x for x in range(len(cell_objects))]
-    # while (len(available_cells) > 0 and curr_cluster < num_of_clusters):
-    #     # start with random cell from available cells and assign it to a new cluster
-    #     new_cell = random.choice(available_cells)
-    #     cells_to_process = [new_cell]
-    #     while (len(cells_to_process) > 0):
-    #         # define current cell anylized
-    #         curr_cell = cells_to_process[0]
-    #         # extract cells with distance to curr cell smaller than threshold
-    #         close_cells = np.array(range(len(cell_objects)))[distance_matrix[curr_cell, :] < threshold]
-    #         # add only cells that are not yet in a cluster for further processing
-    #         diff_from_processing = list(set(close_cells) - set(clusters[curr_cluster]) - set(cells_to_process))
-    #         # for cell in close_cells:
-    #         #     if (cell not in clusters[curr_cluster]) and (cell not in cells_to_process):
-    #         #         cells_to_process.append(cell)
-    #         cells_to_process = cells_to_process + diff_from_processing
-    #         # add current cell to current cluster
-    #         clusters[curr_cluster].append(curr_cell)
-
-    #         # remove processed cell from all avalable cells and 
-    #         # from current cells_to process for this cluster
-    #         cells_to_process.remove(curr_cell)
-    #         available_cells.remove(curr_cell)
-
-
-    #     curr_cluster += 1
-    
-    # curr_cluster -= 1
-
-    # # if we do not have enough clusters label leftover cells as extra class
-    # if (len(available_cells) > 0):
-    #     clusters.append([x for x in available_cells]) # probably could have just appended available_cells
-    #     curr_cluster += 1
-    #     # curr_pass += 1
-    
-    # # display
-    # colors = ['b', 'g', 'r', 'm', 'c', 'k', 'y', '#884488', '#018888', '#2248FF', '#FF3388']
-    # cluster_labels = np.array(range(curr_cluster+1))
-    # for cluster_id in cluster_labels:
-    #     plt.scatter(spatial_plane_coords[clusters[cluster_id], 0], spatial_plane_coords[clusters[cluster_id], 1], marker='o', c=colors[np.where(cluster_labels == cluster_id)[0][0]], label=str(cluster_id))
-    # plt.legend()
-    # plt.xlabel('x')
-    # plt.ylabel('y')
-    # plt.show()
-
+    # custom clusterization by the test3 taks
+    # max_iter = 300
+    # curr_pass = 0
+    clusters = [[] for _ in range(num_of_clusters)]
+    curr_cluster = 0
     available_cells = [x for x in range(len(cell_objects))]
-    knmeans_obj = kmeans.KMeans(n_clusters=num_of_clusters, max_iter=300)
-    knmeans_obj.fit(available_cells, distance_matrix)
-    _, labels = knmeans_obj.evaluate(available_cells, distance_matrix)
+    while (len(available_cells) > 0 and curr_cluster < num_of_clusters):
+        # start with random cell from available cells and assign it to a new cluster
+        new_cell = random.choice(available_cells)
+        cells_to_process = [new_cell]
+        while (len(cells_to_process) > 0):
+            # define current cell anylized
+            curr_cell = cells_to_process[0]
+            # extract cells with distance to curr cell smaller than threshold
+            close_cells = np.array(range(len(cell_objects)))[distance_matrix[curr_cell, :] < threshold]
+            # add only cells that are not yet in a cluster for further processing
+            diff_from_processing = list(set(close_cells) - set(clusters[curr_cluster]) - set(cells_to_process))
+            # for cell in close_cells:
+            #     if (cell not in clusters[curr_cluster]) and (cell not in cells_to_process):
+            #         cells_to_process.append(cell)
+            cells_to_process = cells_to_process + diff_from_processing
+            # add current cell to current cluster
+            clusters[curr_cluster].append(curr_cell)
 
+            # remove processed cell from all avalable cells and 
+            # from current cells_to process for this cluster
+            cells_to_process.remove(curr_cell)
+            available_cells.remove(curr_cell)
+
+
+        curr_cluster += 1
+    
+    curr_cluster -= 1
+
+    # if we do not have enough clusters label leftover cells as extra class
+    if (len(available_cells) > 0):
+        clusters.append([x for x in available_cells]) # probably could have just appended available_cells
+        curr_cluster += 1
+        # curr_pass += 1
+    
     # display
     figure = plt.gcf() # get current figure
     figure.set_size_inches(19.2, 9.83)
-    cluster_labels = np.unique(labels)
+    cluster_labels = np.array(range(curr_cluster+1))
     for cluster_id in cluster_labels:
-        plt.scatter(spatial_plane_coords[np.where(labels==cluster_id)[0], 0], spatial_plane_coords[np.where(labels==cluster_id)[0], 1], marker='o', c=colors[np.where(cluster_labels == cluster_id)[0][0]], label=str(cluster_id))
+        plt.scatter(spatial_plane_coords[clusters[cluster_id], 0], spatial_plane_coords[clusters[cluster_id], 1], marker='o', c=colors[np.where(cluster_labels == cluster_id)[0][0]], label=str(cluster_id))
     plt.legend()
     plt.xlabel('x')
     plt.ylabel('y')
-    plt.title("custom_kmeans_exp_weight_%.1f_num_cluster_%d_maxfnum_%d_log_genes_3addfeat.png" % (exp_weight, num_of_clusters, max_feature_num))
+    plt.title("watershed_clustering_exp_weight_%.1f_num_cluster_%d_maxfnum_%d_thrperc_%.3f_log_genes_3addfeat.png" % (exp_weight, num_of_clusters, max_feature_num, percentage_distance_threshold))
     # plt.show()
-    plt.savefig("custom_kmeans_exp_weight_%.1f_num_cluster_%d_maxfnum_%d_log_genes_3addfeat.png" % (exp_weight, num_of_clusters, max_feature_num), dpi=600)
+    plt.savefig("watershed_clustering_exp_weight_%.1f_num_cluster_%d_maxfnum_%d_thrperc_%.3f_log_genes_3addfeat.png" % (exp_weight, num_of_clusters, max_feature_num, percentage_distance_threshold), dpi=600)
     plt.close()
+
+    # ############################
+    # ############ KMEANS ########
+    # # custom distance metric kmeans algorithm
+    # available_cells = [x for x in range(len(cell_objects))]
+    # knmeans_obj = kmeans.KMeans(n_clusters=num_of_clusters, max_iter=300)
+    # knmeans_obj.fit(available_cells, distance_matrix)
+    # _, labels = knmeans_obj.evaluate(available_cells, distance_matrix)
+
+    # # display
+    # figure = plt.gcf() # get current figure
+    # figure.set_size_inches(19.2, 9.83)
+    # cluster_labels = np.unique(labels)
+    # for cluster_id in cluster_labels:
+    #     plt.scatter(spatial_plane_coords[np.where(labels==cluster_id)[0], 0], spatial_plane_coords[np.where(labels==cluster_id)[0], 1], marker='o', c=colors[np.where(cluster_labels == cluster_id)[0][0]], label=str(cluster_id))
+    # plt.legend()
+    # plt.xlabel('x')
+    # plt.ylabel('y')
+    # plt.title("custom_kmeans_exp_weight_%.1f_num_cluster_%d_maxfnum_%d_log_genes_3addfeat.png" % (exp_weight, num_of_clusters, max_feature_num))
+    # # plt.show()
+    # plt.savefig("custom_kmeans_exp_weight_%.1f_num_cluster_%d_maxfnum_%d_log_genes_3addfeat.png" % (exp_weight, num_of_clusters, max_feature_num), dpi=600)
+    # plt.close()
 
 
 
@@ -263,18 +270,16 @@ if __name__ == '__main__':
     # open the input file
     filename = "../input.tsv"
     pd.options.display.max_rows = 9999
-    percentage_distance_threshold = 0.007
+    # percentage_distance_threshold = 0.03
     max_feature_num = 2000
     num_of_clusters = 10
     # exp_weight = 0.5
-    for exp_weight in [x/10 for x in range(0,11)]:
+    for exp_weight in [x/10 for x in range(5,9)]:
     #     for num_of_clusters in range(5,15,1):
+        for percentage_distance_threshold in [x/1000 for x in range(20,30, 1)]:
 
-
-
-        main(filename=filename,
-            exp_weight = exp_weight, 
-            percentage_distance_threshold = percentage_distance_threshold,
-            num_of_clusters = num_of_clusters,
-            max_feature_num = max_feature_num)
-    # print("Number of increases is %d.\n" % result)
+            main(filename=filename,
+                exp_weight = exp_weight, 
+                percentage_distance_threshold = percentage_distance_threshold,
+                num_of_clusters = num_of_clusters,
+                max_feature_num = max_feature_num)
