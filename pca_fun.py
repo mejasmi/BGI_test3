@@ -34,16 +34,16 @@ def pca_transform (dataset, num_of_pca=0, explained_variance=0.75):
     #
     # Plot the explained variance against cumulative explained variance
     #
-    import matplotlib.pyplot as plt
+    # import matplotlib.pyplot as plt
     cum_sum_exp = np.cumsum(var_exp)
-    print("With 2 components, explained variance is: %f" % cum_sum_exp[1])
-    plt.bar(range(0,len(var_exp)), var_exp, alpha=0.5, align='center', label='Individual explained variance')
-    plt.step(range(0,len(cum_sum_exp)), cum_sum_exp, where='mid',label='Cumulative explained variance')
-    plt.ylabel('Explained variance ratio')
-    plt.xlabel('Principal component index')
-    plt.legend(loc='best')
-    plt.tight_layout()
-    plt.show()
+    # print("With 2 components, explained variance is: %f" % cum_sum_exp[1])
+    # plt.bar(range(0,len(var_exp)), var_exp, alpha=0.5, align='center', label='Individual explained variance')
+    # plt.step(range(0,len(cum_sum_exp)), cum_sum_exp, where='mid',label='Cumulative explained variance')
+    # plt.ylabel('Explained variance ratio')
+    # plt.xlabel('Principal component index')
+    # plt.legend(loc='best')
+    # plt.tight_layout()
+    # plt.show()
     
     #
     # Construct projection matrix using the num_of_pca eigenvectors that correspond to the top num_of_pca eigenvalues (largest)

@@ -31,7 +31,8 @@ def SSD(x1,y1, x2,y2):
 def main(filename,
          exp_weight,
          percentage_distance_threshold,
-         num_of_clusters):
+         num_of_clusters,
+         max_feature_num):
     dfile = pd.read_csv(filename, sep='\t')
 
     # need the list of all genes to base the feature vector on them
@@ -58,33 +59,42 @@ def main(filename,
             # each position in feature vector is a number of MIDCounts for all unique genes
             # NOTE: additianly we can add other attributes, total expression for cell,
             # maximum expression, number of different genes expressed etc.
-            new_cell.create_feature_vector(gene_names = unique_genes)
+            new_cell.create_gene_feature_vector(gene_names = unique_genes)
 
             # add other features to feature vector
             # here we are adding total gene expression, maximum gene expression and number of unique genes
-            new_cell.add_features(new_cell.total_gene_expression, new_cell.maximum_gene_expression, len(new_cell.genes))
+            new_cell.add_features(new_cell.total_expression, new_cell.maximum_expression, len(new_cell.genes))
             
             # add new_cell to a list of cells
             cell_objects.append(new_cell)
-            # if (len(cell_objects) > 49 ):
-            #     break
 
         # save formatted cells
         save_data("cells.dat", cell_objects)
     
-
-    dataset = np.zeros(shape=(unique_cells.shape[0], unique_genes.shape[0])) # can be done without unique variables
+    # stack all data in a 2D array
+    dataset = np.zeros(shape=(unique_cells.shape[0], cell_objects[0].feature_vector.size)) # can be done without unique variables
     for it in range(len(cell_objects)):
         dataset[it, :] = np.copy(cell_objects[it].feature_vector)
-    
-    # create feature vector the size of all unique genes, and additional value total_expression
-    # fill those feature vectors and run PCA
-    
 
+    # normalize additional attributes
+    for i in range(1,4):
+        dataset[:, -i] /= dataset[:,-i].max()
+
+    # Seurat advises to prune the features by extracting a fixed number of features
+    # that have the highest variance in the cell set
+    # calculate column variance
+    dataset_column_variance = np.var(dataset, axis=0)
+    column_variance_pairs = [(dataset[:,i], dataset_column_variance[i]) for i in range(dataset.shape[1])]
+    # sort pairs by variance, highest first
+    column_variance_pairs.sort(key=lambda k: k[1], reverse=True)
+    # stack columns (features) with highest variance into a new dataset
+    pruned_dataset = np.hstack((column_variance_pairs[i][0][:, np.newaxis] for i in range(0,max_feature_num)))    
+
+    # run PCA
     pca_dataset = load_data("pca_2Dcomp.dat")
     if (pca_dataset == []):
         # perform PCA on feature vectors
-        pca_dataset = pca_fun.pca_transform(dataset, explained_variance = 0.95)
+        pca_dataset = pca_fun.pca_transform(pruned_dataset, num_of_pca=2)
         save_data("pca_2Dcomp.dat", pca_dataset)
 
     norm_pca_dataset = load_data("norm_after_pca.dat")
@@ -225,21 +235,24 @@ def main(filename,
     # plt.ylabel('y')
     # plt.show()
 
-    # available_cells = [x for x in range(len(cell_objects))]
-    # knmeans_obj = kmeans.KMeans(n_clusters=num_of_clusters, max_iter=300)
-    # knmeans_obj.fit(available_cells, distance_matrix)
-    # _, labels = knmeans_obj.evaluate(available_cells, distance_matrix)
+    available_cells = [x for x in range(len(cell_objects))]
+    knmeans_obj = kmeans.KMeans(n_clusters=num_of_clusters, max_iter=300)
+    knmeans_obj.fit(available_cells, distance_matrix)
+    _, labels = knmeans_obj.evaluate(available_cells, distance_matrix)
 
-    # # display
-    # colors = ['b', 'g', 'r', 'm', 'c', 'k', 'y', '#884488', '#018888', '#2248FF', '#FF3388', '#934752', '#E7B300', '#9012FE', '#3322CC']
-    # cluster_labels = np.unique(labels)
-    # for cluster_id in cluster_labels:
-    #     plt.scatter(spatial_plane_coords[np.where(labels==cluster_id)[0], 0], spatial_plane_coords[np.where(labels==cluster_id)[0], 1], marker='o', c=colors[np.where(cluster_labels == cluster_id)[0][0]], label=str(cluster_id))
-    # plt.legend()
-    # plt.xlabel('x')
-    # plt.ylabel('y')
-    # plt.savefig("custom_kmeans_exp_weight_%.1f_num_cluster_%d.png" % (exp_weight, num_of_clusters))
-    # plt.close()
+    # display
+    figure = plt.gcf() # get current figure
+    figure.set_size_inches(19.2, 9.83)
+    cluster_labels = np.unique(labels)
+    for cluster_id in cluster_labels:
+        plt.scatter(spatial_plane_coords[np.where(labels==cluster_id)[0], 0], spatial_plane_coords[np.where(labels==cluster_id)[0], 1], marker='o', c=colors[np.where(cluster_labels == cluster_id)[0][0]], label=str(cluster_id))
+    plt.legend()
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title("custom_kmeans_exp_weight_%.1f_num_cluster_%d_maxfnum_%d_log_genes_3addfeat.png" % (exp_weight, num_of_clusters, max_feature_num))
+    # plt.show()
+    plt.savefig("custom_kmeans_exp_weight_%.1f_num_cluster_%d_maxfnum_%d_log_genes_3addfeat.png" % (exp_weight, num_of_clusters, max_feature_num), dpi=600)
+    plt.close()
 
 
 
@@ -251,12 +264,17 @@ if __name__ == '__main__':
     filename = "../input.tsv"
     pd.options.display.max_rows = 9999
     percentage_distance_threshold = 0.007
-    # for exp_weight in [x/10 for x in range(0,11)]:
-    #     for num_of_clusters in range(5,15,1):
-    exp_weight = 0.3
+    max_feature_num = 2000
     num_of_clusters = 10
-    main(filename=filename,
-        exp_weight = exp_weight, 
-        percentage_distance_threshold = percentage_distance_threshold,
-        num_of_clusters = num_of_clusters)
+    # exp_weight = 0.5
+    for exp_weight in [x/10 for x in range(0,11)]:
+    #     for num_of_clusters in range(5,15,1):
+
+
+
+        main(filename=filename,
+            exp_weight = exp_weight, 
+            percentage_distance_threshold = percentage_distance_threshold,
+            num_of_clusters = num_of_clusters,
+            max_feature_num = max_feature_num)
     # print("Number of increases is %d.\n" % result)
