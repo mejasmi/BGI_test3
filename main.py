@@ -138,7 +138,7 @@ def main(filename,
         ############ Waterchedlikecluster ########
         # custom distance metric flood clustering
         available_cells = [x for x in range(len(cell_objects))]
-        watershedcluster_obj = watershedlikecluster.Watershedlikecluster(n_clusters=num_of_clusters)
+        watershedcluster_obj = watershedlikecluster.Watershedlikecluster(num_of_clusters=num_of_clusters)
         labels = watershedcluster_obj.fit(available_cells, distance_matrix, threshold)
 
     if algorithm.name == 'CUSTOM_KMEANS':
@@ -167,7 +167,7 @@ def main(filename,
     plt.xlabel('x')
     plt.ylabel('y')
     plt.title("%s_exp_weight_%.1f_num_cluster_%d_maxfnum_%d_thrperc_%.3f_log_genes_3addfeat" % (algorithm.name, exp_weight, num_of_clusters, max_feature_num, percentage_distance_threshold))
-    plt.show()
+    # plt.show()
     plt.savefig("%s_exp_weight_%.1f_num_cluster_%d_maxfnum_%d_thrperc_%.3f_log_genes_3addfeat.png" % (algorithm.name, exp_weight, num_of_clusters, max_feature_num, percentage_distance_threshold), dpi=600)
     plt.close()
 
@@ -181,9 +181,13 @@ if __name__ == '__main__':
     num_of_clusters = 10
     exp_weight = 0.6
     percentage_distance_threshold = 0.05
+    # algorithms: 
+    # WATERSHED
+    # CUSTOM_KMEANS
+    # TCLUSTERING
     algorithm = CAlgo.TCLUSTERING
-    # maximum number of iterations for kmeans, or
-    # maximum number of misses for tclustering
+    # maximum number of iterations for CUSTOM_KMEANS (default 300), or
+    # maximum number of misses for TCLUSTERING (default 10000)
     algo_max_iter = 10000 
 
 
