@@ -1,5 +1,4 @@
 import numpy as np
-from numpy.random import uniform
 import random
 
 class TCluster:
